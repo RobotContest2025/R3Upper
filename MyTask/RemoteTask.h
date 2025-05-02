@@ -47,6 +47,18 @@ typedef struct {
   int32_t Right_Encoder;
   uint16_t crc;
 } UART_DataPack;
+
+typedef struct
+{
+  uint8_t head;
+  int16_t ax;
+  int16_t ay;
+  int16_t az;
+  int16_t temp;
+  uint8_t check;
+}JY61P_t;
+
+
 #pragma pack()
 
 typedef enum

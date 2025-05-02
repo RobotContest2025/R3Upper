@@ -21,6 +21,7 @@ typedef struct
 
 typedef struct
 {
+	uint32_t head;
     float v_x;
     float v_y;
     float omega;
@@ -52,10 +53,12 @@ typedef struct {
           Z_Velocity,	//度/s
           Body_X_Velocity,	//m/s
           Body_Y_Velocity;
+          uint8_t read_flag:2;
 } PositionPack_Typedef;
 
 #pragma pack()
 
+Point_t GetACC();
 void MoveControlTask(void* param);
 
 #endif
