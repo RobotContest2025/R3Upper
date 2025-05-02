@@ -16,8 +16,8 @@ Point_t basket = {.x = 0.0f, .y = 3.1f};
 Point_t basket_t;
 
 PID2 pid = {.Kp = 0.5f, .Ki = 0.0f, .Kd = 0.0f, .limit = 100.0f, .output_limit = 0.5f}; // PID控制器结构体
-float s_k = -0.5f;
-float t_k = -0.0f;
+float s_k = -0.5f,t_k = -0.0f;
+float hand_posture_angle=0.0f,hand_posture_x=0.1f,hand_posture_y=0.2f;
 float angle_err;
 
 void MoveControlTask(void *param)
@@ -34,18 +34,25 @@ void MoveControlTask(void *param)
     Matrix_t *temp1 = (Matrix_t *)CreateMatrix(3, 1);
     Matrix_t *temp2 = (Matrix_t *)CreateMatrix(3, 3);
 
+    FillMatrix3d(temp2, Fastcos(hand_posture_angle), -Fastsin(hand_posture_angle), hand_posture_x, // 发射机构坐标系到机器人坐标系的转移矩阵
+                        Fastsin(hand_posture_angle), Fastcos(hand_posture_angle), hand_posture_y,
+                        0.0f, 0.0f, 1.0f);
+    MatrixInverse(rob_hand_matrix, temp2);       //矩阵求逆，得到机器人坐标系到发射机构坐标系的转移矩阵
+
     TickType_t last_wake_time = xTaskGetTickCount(); // 获取当前时间戳
     while (1)
     {
         float cos_angle=Fastcos(robot.angle);
         float sin_angle=Fastsin(robot.angle);
+
         // 填写坐标变换矩阵元素
         FillMatrix3d(temp2, cos_angle, -sin_angle, (float)robot.x, // 机器人坐标系下的物体到场地坐标系的转移矩阵
                             sin_angle, cos_angle, (float)robot.y,
                             0.0f, 0.0f, 1.0f);
         MatrixInverse(gnd_rob_matrix, temp2);       // 矩阵求逆，得到场地坐标系到机器人坐标系的转移矩阵
 
-        MatrixProduct(temp, gnd_rob_matrix, basket_pos);        // 求得篮筐在机器人坐标系下的位置
+        MatrixProduct(temp1, gnd_rob_matrix, basket_pos);        // 求得篮筐在机器人坐标系下的位置
+        MatrixProduct(temp, rob_hand_matrix, temp1);             // 求得发射机构坐标系下的篮筐位置
         basket_t.x = GetElement(temp, 0, 0);
         basket_t.y = GetElement(temp, 1, 0);
         // 计算机器人的转动
@@ -55,8 +62,16 @@ void MoveControlTask(void *param)
             if(angle_err<-90.0f)    //机器人锁定角度大约为90度左右（y轴朝前），需要将角度从-180~180转换到-90~270之间，保证在PID控制器的作用下以劣弧转动并对齐目标
                 angle_err+=360.0f;
 
-            float basket_dis = sqrtf(basket_t.x * basket_t.x + basket_t.y * basket_t.y); // 求得篮筐到机器人的距离
-            if (basket_dis > 0.5f&&basket_dis<10.0f)
+            float basket_dis = sqrtf(basket_t.x * basket_t.x + basket_t.y * basket_t.y); // 求得篮筐到投射机构的距离
+
+            if(basket_dis>=10.0f)
+            {
+                pid.Kp=0.1f;
+                pid.Kd=0.1f;
+                PID_Control2(angle_err, 90.0f, &pid);
+                chassis.omega = pid.pid_out - RAD2ANGLE((robot.iner_vx / basket_dis)) + remote.omega;
+            }
+            else if (basket_dis > 0.5f)
             {
                 pid.Kp=s_k*(basket_dis-10.0f);
                 pid.Kd=t_k*(basket_dis-10.0f);
