@@ -17,11 +17,12 @@ Point_t basket = {.x = 0.0f, .y = 3.1f};
 Point_t basket_t;
 
 PID2 pid = {.Kp = 0.5f, .Ki = 0.0f, .Kd = 0.0f, .limit = 100.0f, .output_limit = 20.0f}; // PID控制器结构体
+PID2 pid2 = {.Kp = -4.0f, .Ki = 0.0f, .Kd = 0.0f, .limit = 100.0f, .output_limit = 72.0f};
 float s_k = -0.5f, t_k = -0.0f;
 float hand_posture_angle = 0.0f, hand_posture_x = 0.1f, hand_posture_y = 0.2f;
 float angle_err;
-float k_offset = 2.0f;
-Point_t offset = {.x = 0.0f, .y = 0.0f};
+float target_angle;
+float k_omega = -1.2f;
 float dot_product;
 float module2;
 
@@ -49,6 +50,7 @@ void MoveControlTask(void *param)
                  0.0f, 0.0f, 1.0f);
     MatrixInverse(rob_hand_matrix, temp2); // 矩阵求逆，得到机器人坐标系到发射机构坐标系的转移矩阵
 
+    target_angle = robot.angle;
     TickType_t last_wake_time = xTaskGetTickCount(); // 获取当前时间戳
     while (1)
     {
@@ -112,50 +114,18 @@ void MoveControlTask(void *param)
             chassis.v_y = remote.v_y;
 
             // 启用偏移自动校正
-            if (enable_offset)
+            if (enable_offset && (remote.v_x != 0.0f || remote.v_y != 0.0f))
             {
-
-                /*Point_t offset;
-                offset.x = remote.v_x - robot.iner_vx;
-                offset.y = remote.v_y - robot.iner_vy;
-                chassis.v_x = chassis.v_x + offset.x;
-                chassis.v_y = chassis.v_y + offset.y;*/
-                dot_product = remote.v_x * robot.iner_vx + remote.v_y * robot.iner_vy;
-                module2 = remote.v_x * remote.v_x + remote.v_y * remote.v_y;
-                if (module2 > 0.001f)
-                {
-                    offset.x = dot_product / module2 * remote.v_x - robot.iner_vx;
-                    offset.y = dot_product / module2 * remote.v_y - robot.iner_vy;
-                }
-                else
-                {
-                    offset.x = 0.0f;
-                    offset.y = 0.0f;
-                }
-                chassis.v_x = chassis.v_x + k_offset * offset.x;
-                chassis.v_y = chassis.v_y + k_offset * offset.y;
+                target_angle = target_angle - remote.omega * 0.01f;
+                PID_Control2(robot.angle, target_angle, &pid2);
+                chassis.omega = pid2.pid_out;
             }
-            /*if (enable_offset)
+            else
             {
-                Point_t acc=GetACC();
-                float dot_product=remote.v_x*acc.x+remote.v_y*acc.y;
-                float module2=remote.v_x*remote.v_x+remote.v_y*remote.v_y;
-                Point_t offset;
-                offset.x=dot_product/module2*acc.x;
-                offset.y=dot_product/module2*acc.y;
-
-                chassis.v_x = chassis.v_x - k_offset*offset.x;
-                chassis.v_y = chassis.v_y - k_offset*offset.y;
-            }*/
+                target_angle = robot.angle;
+            }
         }
         HAL_UART_Transmit_DMA(&huart2, (uint8_t *)&chassis, sizeof(ChassisCtrl_t)); // TODO:发送底盘控制指令
         vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(10));
     }
-}
-
-Point_t GetACC()
-{
-    Point_t acc = {.x = 10.0f, .y = 10.0f};
-
-    return acc;
 }

@@ -19,6 +19,7 @@ typedef struct
     float y;
 } Point_t;
 
+#pragma pack(1) 
 typedef struct
 {
 	uint32_t head;
@@ -27,7 +28,7 @@ typedef struct
     float omega;
 } ChassisCtrl_t; //底盘控制结构体(全部使用国际单位制)
 
-#pragma pack(1) 
+
 typedef struct
 {
     float x;        //绝对坐标系下机器人的位置

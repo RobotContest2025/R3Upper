@@ -16,7 +16,7 @@ extern QueueHandle_t action_deal_mutex;
 
 UART_DataPack remoteRecv, last_remoteRecv;
 uint8_t remote_recv_buf[sizeof(UART_DataPack)];
-uint8_t jy61p_recv_buf[sizeof(JY61P_t)];
+//uint8_t jy61p_recv_buf[sizeof(JY61P_t)];
 
 uint32_t interrupt_ready = 1;
 kalman_filter_t kalman;
@@ -30,7 +30,7 @@ void RemoteTask(void *param)
 {
     vTaskDelay(pdMS_TO_TICKS(1000));
     HAL_UARTEx_ReceiveToIdle_DMA(&huart4, remote_recv_buf, sizeof(remote_recv_buf));
-    HAL_UARTEx_ReceiveToIdle_DMA(&huart5, jy61p_recv_buf, sizeof(jy61p_recv_buf));
+    //HAL_UARTEx_ReceiveToIdle_DMA(&huart5, jy61p_recv_buf, sizeof(jy61p_recv_buf));
     // HAL_UARTEx_ReceiveToIdle_DMA(&huart5, lv53_recv_buf_chass, sizeof(lv53_recv_buf_chass));
     // HAL_UARTEx_ReceiveToIdle_DMA(&huart6, lv53_recv_buf, sizeof(lv53_recv_buf));
     HAL_UARTEx_ReceiveToIdle_DMA(&huart6, (uint8_t *)&position_pack, sizeof(position_pack));
@@ -45,11 +45,11 @@ void RemoteTask(void *param)
 
     while (1)
     {
-        xSemaphoreTake(remote_semaphore, portMAX_DELAY);
+        xSemaphoreTake(remote_semaphore, pdMS_TO_TICKS(20));
         // TODO:接收遥控器控制量并转换为国际单位
-        remote.v_y = ((float)(remoteRecv.rocker[1] - 0x7FF)) / 2047.0f * max_speed;
-        remote.v_x = ((float)(remoteRecv.rocker[0] - 0x7FF)) / 2047.0f * max_speed;
-        remote.omega = (((float)(remoteRecv.rocker[2] - 0x7FF)) / 2047.0f) * max_omega;
+        remote.v_y = ((float)(remoteRecv.rocker[0] - 0x7FF)) / 2047.0f * max_speed;
+        remote.v_x = ((float)(remoteRecv.rocker[1] - 0x7FF)) / 2047.0f * max_speed;
+        remote.omega = (((float)(remoteRecv.rocker[3] - 0x7FF)) / 2047.0f) * max_omega;
 
         // vTaskDelay(pdMS_TO_TICKS(10));
         if (remoteRecv.Key.Left_Key_Up == 1 && last_remoteRecv.Key.Left_Key_Up == 0) // 手动遥控模式
@@ -115,8 +115,8 @@ void RemoteTask(void *param)
         {
             continue_dribble = 0; // 取消运球
         }
-
         last_remoteRecv = remoteRecv; // 更新遥控器状态
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart4, remote_recv_buf, sizeof(remote_recv_buf));
     }
 }
 
@@ -128,17 +128,17 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
     float temp_value;
     if (huart->Instance == UART4) // 遥控器
     {
-        if (remote_recv_buf[0] == 0x5A) // 包头校验
+        if (remote_recv_buf[0] == 0xAA) // 包头校验
         {
             memcpy(&remoteRecv, remote_recv_buf, sizeof(UART_DataPack));
             BaseType_t higherPriorityTaskWoken;
-            HAL_UARTEx_ReceiveToIdle_DMA(&huart4, remote_recv_buf, sizeof(remote_recv_buf));
 
             BaseType_t xHigherPriorityTaskWoken;
             xSemaphoreGiveFromISR(remote_semaphore, &xHigherPriorityTaskWoken);
             portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
             // TODO:FeedDog()
         }
+        
     }
     //    else if (huart->Instance == USART6) // 测距传感器1
     //    {
@@ -174,23 +174,16 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
             _velocity = temp_value;
         }
         lv53_sensor_chass.last_distance = lv53_sensor_chass.distance;*/
-
-        if(jy61p_recv_buf[0] == 0x5A) // 包头校验->加速度数据
-        {
-            JY61P_t *jy61p = (JY61P_t *)jy61p_recv_buf;
-            cur_acc.x=jy61p->ax*9.802/32786.0f*16-robot.omega*robot.omega*1.414f;//TODO:减去因自旋带来的加速度
-            cur_acc.y=jy61p->ay*9.802/32786.0f*16;
-        }
-        HAL_UARTEx_ReceiveToIdle_DMA(&huart5, jy61p_recv_buf, sizeof(jy61p_recv_buf));
     }
     else if (huart->Instance == USART6)
     {
+			
         robot.x = position_pack.X / 1000.0f;
         robot.y = position_pack.Y / 1000.0f;
         robot.angle = position_pack.Angle;
-        robot.omega = position_pack.Z_Velocity;
         robot.iner_vx = position_pack.Body_X_Velocity;
         robot.iner_vy = position_pack.Body_Y_Velocity;
+		robot.omega=position_pack.Z_Velocity;
         HAL_UARTEx_ReceiveToIdle_DMA(&huart6, (uint8_t *)&position_pack, sizeof(position_pack));
     }
 }
@@ -199,8 +192,8 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == UART4)
         HAL_UARTEx_ReceiveToIdle_DMA(&huart4, remote_recv_buf, sizeof(remote_recv_buf));
-    else if (huart->Instance == UART5)
-        HAL_UARTEx_ReceiveToIdle_DMA(&huart5, jy61p_recv_buf, sizeof(jy61p_recv_buf));
+    //else if (huart->Instance == UART5)
+    //    HAL_UARTEx_ReceiveToIdle_DMA(&huart5, jy61p_recv_buf, sizeof(jy61p_recv_buf));
     // else if (huart->Instance == USART6)
     //     HAL_UARTEx_ReceiveToIdle_DMA(&huart6, lv53_recv_buf, sizeof(lv53_recv_buf));
     // else if (huart->Instance == USART3)
