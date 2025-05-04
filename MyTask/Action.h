@@ -19,6 +19,8 @@
 
 #define TARGET_TRACK_UPDATE_TIME    2
 
+#define ACTION_TYPE_INTERRUPTABLE 0x00
+#define ACTION_TYPE_UNINTERRUPTABLE 0x01
 
 typedef struct
 {
@@ -31,27 +33,23 @@ typedef void(*ActionCallback_t)(void* param);
 
 typedef struct
 {
-    void* param;
+    uint32_t type;
     ActionCallback_t action_cb;
+    void* param;
 }Action_t;
 
 
 uint16_t SetSteeringEngineRAD180(float rad);
 uint16_t SetSteeringEngineRAD270(float rad);
-uint32_t MotorTargetTrack(int target, int *ctrl_var, int rate, uint32_t *exit_ctrl);
-float MotorTargetTrack_float(float target, float *ctrl_var, float rate, uint32_t *exit_ctrl);
+void MotorTargetTrack(int target, int *ctrl_var, int rate);
+void MotorTargetTrack_float(float target, float *ctrl_var, float rate);
 
 
 //动作
 void ResetAction(void* param);
-void ClutchLockAction(void* param);
 void TestAction2(void *param);
 void TestAction(void* param);
-void ReadyDribbleAction(void* param);
-void ReadyLaunchAction(void* param);
-void DribbleAction(void *param);
-void LaunchAction(void *param);
-void MainBodyDeclineAction(void* param);
+
 
 
 #endif

@@ -6,8 +6,8 @@ extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;
 extern TIM_HandleTypeDef htim14;
 
-// 需要在RemoteControl中分配按键控制这两个变量
-uint8_t control_mode = 0;   // 运动控制
+// 需要在RemoteControl中分配按键控制这3个变量
+uint8_t control_mode = 0;   // 运动控制模式
 uint8_t lock_to_basket = 0; // 是否锁定篮筐
 uint8_t enable_offset = 0;  // 是否启用偏移自动校正
 
@@ -17,7 +17,7 @@ Point_t basket = {.x = 0.0f, .y = 3.1f};
 Point_t basket_t;
 
 PID2 pid = {.Kp = 0.5f, .Ki = 0.0f, .Kd = 0.0f, .limit = 100.0f, .output_limit = 20.0f}; // PID控制器结构体
-PID2 pid2 = {.Kp = -4.0f, .Ki = 0.0f, .Kd = 0.0f, .limit = 100.0f, .output_limit = 72.0f};
+PID2 pid2 = {.Kp = -4.0f, .Ki = -0.1f, .Kd = -2.0f, .limit = 100.0f, .output_limit = 72.0f};
 float s_k = -0.5f, t_k = -0.0f;
 float hand_posture_angle = 0.0f, hand_posture_x = 0.1f, hand_posture_y = 0.2f;
 float angle_err;
@@ -28,6 +28,7 @@ float module2;
 
 void MoveControlTask(void *param)
 {
+	vTaskDelay(pdMS_TO_TICKS(6000));
     // 位置坐标变换矩阵
     Matrix_t *gnd_rob_matrix = (Matrix_t *)CreateMatrix(3, 3);  // 将地面坐标系转移到机器人坐标系的转移矩阵
     Matrix_t *rob_hand_matrix = (Matrix_t *)CreateMatrix(3, 3); // 将机器人坐标系转移到发射机构坐标系的转移矩阵
@@ -125,6 +126,7 @@ void MoveControlTask(void *param)
                 target_angle = robot.angle;
             }
         }
+        Vector2dSlope(&remote.v_x,&remote.v_x,3.0f*0.01f);
         HAL_UART_Transmit_DMA(&huart2, (uint8_t *)&chassis, sizeof(ChassisCtrl_t)); // TODO:发送底盘控制指令
         vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(10));
     }

@@ -16,7 +16,7 @@
 
 #include <stdio.h>
 
-#define Remote_BT_0_WIFI_1 1
+#define Remote_BT_0_WIFI_1 0
 
 #if !Remote_BT_0_WIFI_1
 
