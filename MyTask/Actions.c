@@ -124,6 +124,7 @@ void TestAction2(void *param)
 	}while(sum>0.01f);
 	reset_offset=jump_motor1.posVelEstimateGet.position;		//到达最低端，并记录最低端的位置
 	
+	
 	jump_motor_target_cur=jump_cur;
 	jump_motor_vel_mode=0;
 	jump_motor_target_vel=0.0f;
