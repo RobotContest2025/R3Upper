@@ -2,10 +2,12 @@
 #include "Odrive.h"
 #include "RobStride2.h"
 
+
+
 extern TIM_HandleTypeDef htim1;
 extern QueueHandle_t action_queue;
 extern QueueHandle_t copilot_action_queue;
-extern QueueHandle_t action_deal_mutex;
+extern QueueHandle_t action_semaphore;
 
 // 传感器应用
 uint8_t lv53_recv_buf[64];
@@ -45,8 +47,7 @@ void ResetAction(void* param)	//上电时执行一次的动作，将机械结构
 	UNUSED(param);
 	MotorTargetTrack_float(0.0f, &pitch_motor_target_pos,0.001f);
 	
-	task_exit=0;
-	vTaskDelete(NULL);
+	ActionFinished();
 }
 
 float pitch_lock_cur=-5.0f;		//俯仰电机锁定电流
@@ -57,7 +58,6 @@ float zero_rate=50.0f;
 void TestAction(void *param)
 {
 	UNUSED(param);
-
 	pitch_motor_target_cur=pitch_lock_cur;
 	
 	push_motor_target_vel=launch_vel;
@@ -73,8 +73,7 @@ void TestAction(void *param)
 	
 	//pitch_motor_pos_mode=1;
 	
-	task_exit=0;
-	vTaskDelete(NULL);
+	ActionFinished();
 }
 
 void LaunchAction(void *param)
@@ -124,7 +123,6 @@ void TestAction2(void *param)
 	}while(sum>0.01f);
 	reset_offset=jump_motor1.posVelEstimateGet.position;		//到达最低端，并记录最低端的位置
 	
-	
 	jump_motor_target_cur=jump_cur;
 	jump_motor_vel_mode=0;
 	jump_motor_target_vel=0.0f;
@@ -147,8 +145,7 @@ void TestAction2(void *param)
 	jump_motor_target_vel=0.0f;
 	jump_motor_vel_mode=1;
 	
-	task_exit=0;
-	vTaskDelete(NULL);
+	ActionFinished();
 }
 
 

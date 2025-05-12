@@ -10,6 +10,7 @@ extern UART_HandleTypeDef huart5;
 
 extern QueueHandle_t action_queue;
 extern QueueHandle_t copilot_action_queue;
+extern QueueHandle_t action_semaphore;
 
 
 Motor2006Ex_t claw_motor = {.hcan = &hcan2, .ID = 0x201};
@@ -166,15 +167,11 @@ void ActionDealTask(void* queue)
 		{
 			if(action.type==ACTION_TYPE_UNINTERRUPTABLE)	//当前任务是可中断的，直接强制结束
 				vTaskDelete(task_handle);
-			else	//当前任务是不可中断的，等待任务结束
-			{
-				while(task_exit)	//等待任务结束并自删
-					vTaskDelay(pdMS_TO_TICKS(5));
-			}
+			else	//当前任务是不可中断的，等待任务结束(任务在结束后会给出信号量并自删)
+				xSemaphoreTask(action_semaphore,portMAX_DELAY);
 		}
 		
 		xQueueReceive((QueueHandle_t)queue,&action,portMAX_DELAY);	//接收一个新的动作执行的请求
-		task_exit=1;
 		if(choose_stack)
 			task_handle=xTaskCreateStatic(action.action_cb,"action1",128,action.param,2,action_stack1,&task_block1);	//执行动作的任务优先级为2，确保可以立即被优先级为3的任务删除
 		else

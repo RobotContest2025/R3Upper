@@ -22,6 +22,12 @@
 #define ACTION_TYPE_INTERRUPTABLE 0x00
 #define ACTION_TYPE_UNINTERRUPTABLE 0x01
 
+
+#define ActionFinished()	\
+		xSemaphoreGive(action_semaphore);\
+		vTaskDelete(NULL)
+
+        
 typedef struct
 {
     int32_t distance;  //mm
