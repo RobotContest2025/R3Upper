@@ -26,6 +26,7 @@ PID2 pitch_pos_pid;
 //电机控制变量
 uint8_t pitch_motor_pos_mode=0;
 uint8_t jump_motor_vel_mode=0;
+uint8_t jump_motor_enable=1;
 int32_t claw_motor_target_pos = 0;
 float push_motor_target_vel = 0;
 float pitch_motor_target_pos=0;
@@ -33,7 +34,7 @@ float pitch_motor_target_cur=0;
 float jump_motor_target_vel=0.0f;
 float jump_motor_target_cur=0.0f;
 
-
+uint8_t last_jump_motor_state=0;
 // 电机PID闭环控制任务
 int16_t canSendBuf[4] = {0};
 int16_t canSendBuf2[4] = {0};
@@ -141,8 +142,28 @@ void MotorControl(void *param)
 			PID_Control2(jump_motor1.posVelEstimateGet.velocity,jump_motor_target_vel,&jump_motor_pid);
 		else
 			jump_motor_pid.pid_out=jump_motor_target_cur;
-		ODriveSetTorque(&jump_motor1,jump_motor_pid.pid_out);
-		ODriveSetTorque(&jump_motor2,jump_motor_pid.pid_out);
+		
+		if(jump_motor_enable!=last_jump_motor_state)	//跳跃电机需要切换模式
+		{
+			if(jump_motor_enable)
+			{
+				int axis_state=ODRIVE_SET_AXIS_STATE_CLOSED_LOOP_CONTROL;
+				ODriveSetAxisState(&jump_motor1,axis_state);
+				ODriveSetAxisState(&jump_motor2,axis_state);
+			}
+			else
+			{
+				int axis_state=ODRIVE_SET_AXIS_STATE_IDLE;
+				ODriveSetAxisState(&jump_motor1,axis_state);
+				ODriveSetAxisState(&jump_motor2,axis_state);
+			}
+			jump_motor_enable=last_jump_motor_state;
+		}
+		else
+		{
+			ODriveSetTorque(&jump_motor1,jump_motor_pid.pid_out);
+			ODriveSetTorque(&jump_motor2,jump_motor_pid.pid_out);
+		}
 		ODriveGetEncoderEstimate(&jump_motor1);
 		debug_vel=jump_motor1.posVelEstimateGet.velocity;
 

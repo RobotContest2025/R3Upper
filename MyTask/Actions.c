@@ -29,6 +29,7 @@ extern float pitch_motor_actual_pos;
 
 extern uint8_t jump_motor_vel_mode;
 extern uint8_t pitch_motor_pos_mode;
+extern uint8_t jump_motor_enable;
 extern int32_t claw_motor_target_pos;
 extern float push_motor_target_vel;
 extern float pitch_motor_target_pos;
@@ -46,7 +47,7 @@ void ResetAction(void* param)	//上电时执行一次的动作，将机械结构
 {
 	UNUSED(param);
 	MotorTargetTrack_float(0.0f, &pitch_motor_target_pos,0.001f);
-	
+	jump_motor_enable=1;
 	ActionFinished();
 }
 
@@ -137,6 +138,53 @@ void TestAction2(void *param)
 	while(jump_motor1.posVelEstimateGet.position>jump_stop_pos+reset_offset)	//等待直到到达刹车点
 		vTaskDelay(5);
 	
+	jump_motor_target_cur=break_cur;		//刹车
+	jump_motor_vel_mode=0;
+	while(jump_motor1.posVelEstimateGet.velocity<0.0f)	//刹车完成
+		vTaskDelay(5);
+	jump_motor_target_cur=0.0f;
+	jump_motor_target_vel=0.0f;
+	jump_motor_vel_mode=1;
+	
+	ActionFinished();
+}
+
+float fast_jump_stop_pos=8.0f;
+
+void FastJump(void *param)
+{
+	Action_t action={.action_cb=LaunchAction};
+	UNUSED(param);
+	float reset_offset=0.0f;
+	float vel_record[16]={1.0f};
+	int record_point=0;
+	float sum=0.0f;
+	
+	jump_motor_target_vel=3.0f;
+	jump_motor_vel_mode=1;
+	vTaskDelay(2000);
+	do
+	{
+		vTaskDelay(50);
+		vel_record[record_point]=jump_motor1.posVelEstimateGet.velocity;
+		record_point=(record_point+1)%16;
+		sum=0.0f;
+		for(int i=0;i<16;i++)
+			sum+=ABS(vel_record[i]);
+		sum=sum/16.0f;
+	}while(sum>0.01f);
+	reset_offset=jump_motor1.posVelEstimateGet.position;		//到达最低端，并记录最低端的位置
+	
+	while(jump_motor1.posVelEstimateGet.position>fast_jump_stop_pos+reset_offset)//等待直到加速到期望速度或者到达刹车点
+		vTaskDelay(5);
+	
+	//xQueueSend(copilot_action_queue,&action,0);		//执行发射动作
+	jump_motor_enable=0;
+	do{
+		vTaskDelay(10);
+	}while(jump_motor1.posVelEstimateGet.velocity>0.0f);		//在撞击时关闭电机，防止控制器出错
+	jump_motor_enable=1;
+
 	jump_motor_target_cur=break_cur;		//刹车
 	jump_motor_vel_mode=0;
 	while(jump_motor1.posVelEstimateGet.velocity<0.0f)	//刹车完成
