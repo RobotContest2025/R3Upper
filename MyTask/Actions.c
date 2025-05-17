@@ -3,7 +3,6 @@
 #include "RobStride2.h"
 
 
-
 extern TIM_HandleTypeDef htim1;
 extern QueueHandle_t action_queue;
 extern QueueHandle_t copilot_action_queue;
@@ -53,9 +52,9 @@ void ResetAction(void* param)	//上电时执行一次的动作，将机械结构
 
 float pitch_lock_cur=-5.0f;		//俯仰电机锁定电流
 
-float launch_gate_pos=165071.0f;
-float launch_vel=2000.0f;
-float zero_rate=50.0f;
+float launch_gate_pos=190000.0f;//165071.0f;
+float launch_vel=60000.0f;
+float zero_rate=100.0f;
 void TestAction(void *param)
 {
 	UNUSED(param);
@@ -97,7 +96,7 @@ void LaunchAction(void *param)
 float jump_vel=-20.0f;
 float jump_cur=-60.0f;
 float jump_stop_pos=-5.0f;
-float break_cur=60.0f;
+float break_cur=25.0f;
 
 
 void TestAction2(void *param)
@@ -130,7 +129,7 @@ void TestAction2(void *param)
 	while((jump_motor1.posVelEstimateGet.position>jump_stop_pos+reset_offset)&&(jump_motor1.posVelEstimateGet.velocity>jump_vel))//等待直到加速到期望速度或者到达刹车点
 		vTaskDelay(5);
 	
-	xQueueSend(copilot_action_queue,&action,0);		//执行发射动作
+	//xQueueSend(copilot_action_queue,&action,0);		//执行发射动作
 	
 	jump_motor_target_vel=jump_vel;	//切入速度闭环模式保持速度
 	jump_motor_vel_mode=1;
@@ -149,7 +148,9 @@ void TestAction2(void *param)
 	ActionFinished();
 }
 
-float fast_jump_stop_pos=8.0f;
+float fast_jump_stop_pos=7.0f;
+float fast_jump_launch_pos=4.9f;
+float fast_jump_cur=8.0f;
 
 void FastJump(void *param)
 {
@@ -160,8 +161,9 @@ void FastJump(void *param)
 	int record_point=0;
 	float sum=0.0f;
 	
-	jump_motor_target_vel=3.0f;
+	jump_motor_target_vel=-3.0f;
 	jump_motor_vel_mode=1;
+	jump_motor_enable=1;
 	vTaskDelay(2000);
 	do
 	{
@@ -172,17 +174,25 @@ void FastJump(void *param)
 		for(int i=0;i<16;i++)
 			sum+=ABS(vel_record[i]);
 		sum=sum/16.0f;
-	}while(sum>0.01f);
+	}while(sum>0.01f);	//速度滤波
 	reset_offset=jump_motor1.posVelEstimateGet.position;		//到达最低端，并记录最低端的位置
 	
-	while(jump_motor1.posVelEstimateGet.position>fast_jump_stop_pos+reset_offset)//等待直到加速到期望速度或者到达刹车点
+	jump_motor_target_cur=fast_jump_cur;
+	jump_motor_vel_mode=0;
+	jump_motor_target_vel=0.0f;
+	while(jump_motor1.posVelEstimateGet.position<fast_jump_launch_pos+reset_offset)//等待直到加速到期望速度或者到达刹车点
 		vTaskDelay(5);
 	
-	//xQueueSend(copilot_action_queue,&action,0);		//执行发射动作
+	xQueueSend(copilot_action_queue,&action,0);		//执行发射动作
+	
+	while(jump_motor1.posVelEstimateGet.position<fast_jump_stop_pos+reset_offset)//等待直到加速到期望速度或者到达刹车点
+		vTaskDelay(5);
+	
+	jump_motor_target_cur=0.0f;
 	jump_motor_enable=0;
 	do{
-		vTaskDelay(10);
-	}while(jump_motor1.posVelEstimateGet.velocity>0.0f);		//在撞击时关闭电机，防止控制器出错
+		vTaskDelay(5);
+	}while(jump_motor1.posVelEstimateGet.velocity>-5.0f);		//在撞击时关闭电机，防止控制器出错
 	jump_motor_enable=1;
 
 	jump_motor_target_cur=break_cur;		//刹车

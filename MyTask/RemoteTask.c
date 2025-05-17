@@ -79,7 +79,10 @@ void RemoteTask(void *param)
         }
         else if (remoteRecv.Key.Left_Key_Left == 1 && last_remoteRecv.Key.Left_Key_Left == 0) // 云台跟随模式
         {
-
+					action.action_cb=FastJump;
+            action.type=ACTION_TYPE_INTERRUPTABLE;
+            action.param=NULL;
+            xQueueSend(action_queue,&action,pdMS_TO_TICKS(10));
         }
         else if (remoteRecv.Key.Left_Key_Right == 1 && last_remoteRecv.Key.Left_Key_Right == 0) // 发射态和运球态切换
         {

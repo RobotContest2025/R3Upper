@@ -10,7 +10,8 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
-#include "main.h"
+#include "queue.h"
+#include "semphr.h"
 #include "cmsis_os.h"
 
 #include "Action.h"

@@ -17,8 +17,8 @@ Motor2006Ex_t claw_motor = {.hcan = &hcan2, .ID = 0x201};
 Motor3508Ex_t push_motor = {.hcan = &hcan1, .ID = 0x203};
 ODrive jump_motor1 = {.hcan = &hcan1, .motorID = 0x010};
 ODrive jump_motor2 = {.hcan = &hcan1, .motorID = 0x020};
-PID2 jump_motor_pid={.Kp=0.06f,.Ki=0.005f,.limit=50.0f,.output_limit=5.0f};
-RobStride_t pitch_motor={.hcan=&hcan1,.motor_id=0x02,.host_id=0xFD,.type=RobStride_01};
+PID2 jump_motor_pid={.Kp=0.06f,.Ki=0.005f,.limit=50.0f,.output_limit=20.0f};
+RobStride_t pitch_motor={.hcan=&hcan2,.motor_id=0x02,.host_id=0xFD,.type=RobStride_01};
 float pitch_motor_actual_pos=0.0f;
 PID2 pitch_vel_pid;
 PID2 pitch_pos_pid;
@@ -40,6 +40,7 @@ int16_t canSendBuf[4] = {0};
 int16_t canSendBuf2[4] = {0};
 
 float debug_vel=0.0f;
+float debug_cur=0.0f;
 void MotorControl(void *param)
 {
 	// 夹爪PID配置
@@ -157,15 +158,20 @@ void MotorControl(void *param)
 				ODriveSetAxisState(&jump_motor1,axis_state);
 				ODriveSetAxisState(&jump_motor2,axis_state);
 			}
-			jump_motor_enable=last_jump_motor_state;
+			last_jump_motor_state=jump_motor_enable;
 		}
 		else
 		{
 			ODriveSetTorque(&jump_motor1,jump_motor_pid.pid_out);
 			ODriveSetTorque(&jump_motor2,jump_motor_pid.pid_out);
 		}
+		vTaskDelay(1);
+		ODriveSendOrReceiveData(&jump_motor1,ODRIVE_CMD_READ|ODRIVE_GET_TORQUE_CURRENT,NULL);
+		ODriveGetPowerInfo(&jump_motor1);
 		ODriveGetEncoderEstimate(&jump_motor1);
+		
 		debug_vel=jump_motor1.posVelEstimateGet.velocity;
+		debug_cur=jump_motor1.torqueCurrentGet.torqueCurrentNow;
 
 		vTaskDelayUntil(&last_wake_time,pdMS_TO_TICKS(5));
 	}
@@ -189,7 +195,7 @@ void ActionDealTask(void* queue)
 			if(action.type==ACTION_TYPE_UNINTERRUPTABLE)	//当前任务是可中断的，直接强制结束
 				vTaskDelete(task_handle);
 			else	//当前任务是不可中断的，等待任务结束(任务在结束后会给出信号量并自删)
-				xSemaphoreTask(action_semaphore,portMAX_DELAY);
+				xSemaphoreTake(action_semaphore,portMAX_DELAY);
 		}
 		
 		xQueueReceive((QueueHandle_t)queue,&action,portMAX_DELAY);	//接收一个新的动作执行的请求

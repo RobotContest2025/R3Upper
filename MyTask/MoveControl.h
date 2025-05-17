@@ -59,7 +59,7 @@ typedef struct {
 
 #pragma pack()
 
-Point_t GetACC();
+
 void MoveControlTask(void* param);
 
 #endif

@@ -55,6 +55,7 @@ void MotorTargetTrack_float(float target, float *ctrl_var, float rate);
 void ResetAction(void* param);
 void TestAction2(void *param);
 void TestAction(void* param);
+void FastJump(void *param);
 
 
 
