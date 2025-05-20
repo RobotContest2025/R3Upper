@@ -72,21 +72,24 @@ void RemoteTask(void *param)
         }
         else if (remoteRecv.Key.Left_Key_Down == 1 && last_remoteRecv.Key.Left_Key_Down == 0) // 急停模式
         {
-            action.action_cb=TestAction2;
+            action.action_cb=LaunchInVel;
             action.type=ACTION_TYPE_INTERRUPTABLE;
             action.param=NULL;
             xQueueSend(action_queue,&action,pdMS_TO_TICKS(10));
         }
         else if (remoteRecv.Key.Left_Key_Left == 1 && last_remoteRecv.Key.Left_Key_Left == 0) // 云台跟随模式
         {
-					action.action_cb=FastJump;
+			action.action_cb=FastJump;
             action.type=ACTION_TYPE_INTERRUPTABLE;
             action.param=NULL;
             xQueueSend(action_queue,&action,pdMS_TO_TICKS(10));
         }
         else if (remoteRecv.Key.Left_Key_Right == 1 && last_remoteRecv.Key.Left_Key_Right == 0) // 发射态和运球态切换
         {
-
+						action.action_cb=JumpInVel;
+            action.type=ACTION_TYPE_INTERRUPTABLE;
+            action.param=NULL;
+            xQueueSend(action_queue,&action,pdMS_TO_TICKS(10));
         }
         else if (remoteRecv.Key.Right_Key_Up == 1 && last_remoteRecv.Key.Right_Key_Up == 0) // 开始执行一次运球
         {

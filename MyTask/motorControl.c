@@ -14,9 +14,9 @@ extern QueueHandle_t action_semaphore;
 
 
 Motor2006Ex_t claw_motor = {.hcan = &hcan2, .ID = 0x201};
-Motor3508Ex_t push_motor = {.hcan = &hcan1, .ID = 0x203};
-ODrive jump_motor1 = {.hcan = &hcan1, .motorID = 0x010};
-ODrive jump_motor2 = {.hcan = &hcan1, .motorID = 0x020};
+Motor3508Ex_t push_motor = {.hcan = &hcan2, .ID = 0x203};
+ODrive jump_motor1 = {.hcan = &hcan2, .motorID = 0x010};
+ODrive jump_motor2 = {.hcan = &hcan2, .motorID = 0x020};
 PID2 jump_motor_pid={.Kp=0.06f,.Ki=0.005f,.limit=50.0f,.output_limit=20.0f};
 RobStride_t pitch_motor={.hcan=&hcan2,.motor_id=0x02,.host_id=0xFD,.type=RobStride_01};
 float pitch_motor_actual_pos=0.0f;
@@ -27,7 +27,9 @@ PID2 pitch_pos_pid;
 uint8_t pitch_motor_pos_mode=0;
 uint8_t jump_motor_vel_mode=0;
 uint8_t jump_motor_enable=1;
+uint8_t push_motor_vel_mode=1;
 int32_t claw_motor_target_pos = 0;
+float push_motor_target_cur=0.0f;
 float push_motor_target_vel = 0;
 float pitch_motor_target_pos=0;
 float pitch_motor_target_cur=0;
@@ -40,6 +42,7 @@ int16_t canSendBuf[4] = {0};
 int16_t canSendBuf2[4] = {0};
 
 float debug_vel=0.0f;
+float debug_pos=0.0f;
 float debug_cur=0.0f;
 void MotorControl(void *param)
 {
@@ -124,18 +127,22 @@ void MotorControl(void *param)
 		//RobStrideGet(&pitch_motor,PARAM_R_OTATION);
 		//RobStrideGet(&pitch_motor,PARAM_MECH_VEL);
 		vTaskDelay(1);
-		RobStrideTorqueControl(&pitch_motor,pitch_vel_pid.pid_out);
+		//RobStrideTorqueControl(&pitch_motor,pitch_vel_pid.pid_out);
 
 		//夹爪电机环路
 		PID_Control2(claw_motor.actual_pos, claw_motor_target_pos, &claw_motor.pos_pid);
 		PID_Control2(claw_motor.motor.Speed, claw_motor.pos_pid.pid_out, &claw_motor.vel_pid);
-		canSendBuf2[0]=claw_motor.vel_pid.pid_out;
-		MotorSend(&hcan2, 0x200, canSendBuf2);
+		//canSendBuf2[0]=claw_motor.vel_pid.pid_out;
+		//MotorSend(&hcan2, 0x200, canSendBuf2);
 
 		//推射电机控制环路
-		PID_Control2(push_motor.motor.Speed,push_motor_target_vel,&push_motor.vel_pid);
-		canSendBuf[2]=(int16_t)push_motor.vel_pid.pid_out;	//推射电机数据发送
-		MotorSend(&hcan1, 0x200, canSendBuf);
+		if(push_motor_vel_mode)
+			PID_Control2(push_motor.motor.Speed,push_motor_target_vel,&push_motor.vel_pid);
+		else
+			push_motor.vel_pid.pid_out=0.0f;
+		
+		canSendBuf[2]=(int16_t)(push_motor.vel_pid.pid_out+push_motor_target_cur);	//推射电机数据发送
+		MotorSend(&hcan2, 0x200, canSendBuf);
 		
 		//跳跃电机环路
 		vTaskDelay(1);
@@ -172,7 +179,7 @@ void MotorControl(void *param)
 		
 		debug_vel=jump_motor1.posVelEstimateGet.velocity;
 		debug_cur=jump_motor1.torqueCurrentGet.torqueCurrentNow;
-
+		
 		vTaskDelayUntil(&last_wake_time,pdMS_TO_TICKS(5));
 	}
 }
@@ -225,6 +232,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 	Motor2006Recv(&claw_motor, hcan, ID, buf);
 	Motor3508Recv(&push_motor, hcan, ID, buf);
 	ODriveRecvServe(&jump_motor1, ID, buf);
+	ODriveRecvServe(&jump_motor2, ID, buf);
 	RobStrideRecv_Handle(&pitch_motor, hcan, ID, buf);
 }
 
@@ -235,6 +243,7 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
 	Motor2006Recv(&claw_motor, hcan, ID, buf);
 	Motor3508Recv(&push_motor, hcan, ID, buf);
 	ODriveRecvServe(&jump_motor1, ID, buf);
+	ODriveRecvServe(&jump_motor2, ID, buf);
 	RobStrideRecv_Handle(&pitch_motor, hcan, ID, buf);
 }
 
