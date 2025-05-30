@@ -93,7 +93,10 @@ void RemoteTask(void *param)
         }
         else if (remoteRecv.Key.Right_Key_Up == 1 && last_remoteRecv.Key.Right_Key_Up == 0) // 开始执行一次运球
         {
-
+					action.action_cb=DebugAction;
+            action.type=ACTION_TYPE_INTERRUPTABLE;
+            action.param=NULL;
+            xQueueSend(action_queue,&action,pdMS_TO_TICKS(10));
         }
         else if (remoteRecv.Key.Right_Key_Left == 1 && last_remoteRecv.Key.Right_Key_Left == 0) // 底盘下降，准备运球和发射，也可以执行发射操作
         {

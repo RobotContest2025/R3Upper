@@ -53,12 +53,6 @@ void ResetAction(void* param)	//上电时执行一次的动作，将机械结构
 	ActionFinished();
 }
 
-float pitch_lock_cur=-5.0f;		//俯仰电机锁定电流
-
-float launch_gate_pos=190000.0f;//165071.0f;
-float test_launch_cur=0.0f;
-
-float launch_pos=0.0f;
 
 
 //extern float launch_exp_vel;
@@ -93,6 +87,7 @@ void TestAction(void *param)
 	ActionFinished();
 }
 
+#if 0
 float launch_vel=60000.0f;
 
 void LaunchAction_coplit(void *param)
@@ -113,7 +108,7 @@ void LaunchAction_coplit(void *param)
 
 float fast_jump_stop_pos=7.0f;
 float fast_jump_launch_pos=4.9f;
-float fast_jump_cur=8.0f;
+float fast_jump_cur=25.0f;
 
 void FastJump(void *param)
 {
@@ -176,102 +171,6 @@ void LaunchInVel(void* param)	//以某个特定的速度发射
 {
 	UNUSED(param);
 	launch_exp_vel=launch_exp_dis/sqrtf(2.0f*base_launch_height/9.802f);
-	push_motor_vel_mode=0;				//保持开环执行
-	push_motor_target_cur=GetLaunchTorqueEstimate(launch_exp_vel);
-	push_motor_target_vel=GetCurrentExpVelocity(push_motor.actual_pos,launch_exp_vel);
-	while(push_motor.actual_pos<launch_gate_pos)	//进行速度前馈控制直到到达末端
-	{
-		push_motor_target_vel=GetCurrentExpVelocity(push_motor.actual_pos,launch_exp_vel);
-		vTaskDelay(2);
-	}
-	push_motor_target_cur=0.0f;		//力矩电流归零，然后切入速度模式，缓慢跟踪速度到0
-	push_motor_vel_mode=1;
-	MotorTargetTrack_float(0.0f, &push_motor_target_vel,200.0f);	//执行刹车过程
-	vTaskDelay(1000);
-	push_motor_target_vel=-500.0f;		//复位推射机构
-	while(push_motor.actual_pos>0.0f)
-		vTaskDelay(5);
-	push_motor_target_vel=0.0f;
-
-	ActionFinished();
-}
-
-float exp_vx=4.0f;
-float exp_vy=2.0f;
-float k_x_r=8.0f/0.86f;
-float jump_start_cur=10.0f;
-float jump_stop_pos_r=8.0f;
-void JumpInVel(void* param)
-{
-	Action_t action={.action_cb=LaunchInVel_coplit};
-	UNUSED(param);
-	float reset_offset=0.0f;
-	float vel_record[16]={1.0f};
-	int record_point=0;
-	float sum=0.0f;
-	
-	jump_motor_target_vel=-3.0f;
-	jump_motor_vel_mode=1;
-	jump_motor_enable=1;
-	vTaskDelay(1000);
-	do
-	{
-		vTaskDelay(50);
-		vel_record[record_point]=jump_motor1.posVelEstimateGet.velocity;
-		record_point=(record_point+1)%16;
-		sum=0.0f;
-		for(int i=0;i<16;i++)
-			sum+=ABS(vel_record[i]);
-		sum=sum/16.0f;
-	}while(sum>0.01f);	//速度滤波
-	reset_offset=jump_motor1.posVelEstimateGet.position;		//到达最低端，并记录最低端的位置
-
-
-	float launch_consume=GetLaunchTimeEstimate(exp_vx);
-	jump_motor_target_cur=0.0f;
-	jump_motor_target_vel=k_x_r*exp_vy;	//计算期望速度
-	jump_motor_enable=1;
-	//jump_motor_vel_mode=0;
-	//jump_motor_target_cur=jump_start_cur;	//给一个最大的起跳电流
-	//while(jump_motor1.posVelEstimateGet.velocity<k_x_r*exp_vy)
-	//	vTaskDelay(2);
-	
-	while((jump_stop_pos_r-(jump_motor1.posVelEstimateGet.position-reset_offset))>exp_vx*launch_consume*k_x_r)	//还未到达启动发射进程的位置
-	{
-		jump_motor_target_cur=0.0f;
-		jump_motor_target_vel=k_x_r*exp_vy;
-		jump_motor_vel_mode=1;
-		vTaskDelay(5);
-	}
-
-	//xQueueSend(copilot_action_queue,&action,0);		//执行发射动作
-	
-	while(jump_motor1.posVelEstimateGet.position<jump_stop_pos_r+reset_offset)//等待直到到达刹车点
-		vTaskDelay(2);
-
-	jump_motor_target_cur=0.0f;
-	jump_motor_target_vel=0.0f;
-	jump_motor_enable=0;
-
-	do{
-		vTaskDelay(5);
-	}while(jump_motor1.posVelEstimateGet.velocity>-5.0f);		//在撞击时关闭电机，防止控制器出错
-	jump_motor_enable=1;
-
-	jump_motor_target_cur=0.0f;
-	jump_motor_target_vel=-3.0f;
-	jump_motor_vel_mode=1;
-	while(jump_motor1.posVelEstimateGet.position>reset_offset+1.0f)	//等待直到到达刹车点
-		vTaskDelay(5);
-	jump_motor_target_vel=0.0f;
-
-	ActionFinished();
-}
-
-void LaunchInVel_coplit(void* param)	//以某个特定的速度发射(使用副队列)
-{
-	UNUSED(param);
-	launch_exp_vel=launch_exp_dis/sqrtf(2.0f*base_launch_height/9.802f);
 	push_motor_vel_mode=0;				//启用速度PID闭环
 	push_motor_target_cur=GetLaunchTorqueEstimate(launch_exp_vel);
 	push_motor_target_vel=GetCurrentExpVelocity(push_motor.actual_pos,launch_exp_vel);
@@ -288,15 +187,172 @@ void LaunchInVel_coplit(void* param)	//以某个特定的速度发射(使用副�
 	while(push_motor.actual_pos>0.0f)
 		vTaskDelay(5);
 	push_motor_target_vel=0.0f;
+
+	ActionFinished();
+}
+
+//vx=6,vy=7,dt=0.4
+float exp_vx=5.0f;//4.85f;
+float exp_vy=6.0f;//=5.30f;
+float k_x_r=8.0f/0.86f;     //距离*k=电机圈数
+float k_a_i=12.4263464f;           //加速度*k=电机力矩电流
+float mass_compensate=0.5f;    //质量补偿
+float jump_start_cur=30.0f;
+float jump_stop_pos_r=7.7f;
+float reset_offset=0.0f;
+
+
+float remain_time;
+float launch_consume=0.7f;
+
+void JumpInVel(void* param)
+{
+	Action_t action={.action_cb=LaunchInVel_coplit};
+	UNUSED(param);
+	float vel_record[16]={1.0f};
+	int record_point=0;
+	float sum=0.0f;
+	
+  jump_motor_target_cur=0.0f;
+	jump_motor_target_vel=-3.0f;
+	jump_motor_vel_mode=1;
+	jump_motor_enable=1;
+	while(jump_motor1.posVelEstimateGet.position>reset_offset+0.1f)
+		vTaskDelay(5);
+
+
+	//launch_consume=0.3f;//GetLaunchTimeEstimate(exp_vx); //水平投射机构将装置投出去时所需要的电流
+    //float a=exp_vy*exp_vy/(2*jump_stop_pos_r/k_x_r);    //计算起跳时的加速度
+	//jump_motor_target_cur=a/k_a_i;	                    //给一个合适的起跳电流作为力矩前馈
+    jump_motor_target_cur=0.0f;//jump_start_cur;               //加速段给最大加速电流
+    jump_motor_target_vel=exp_vy*k_x_r;
+	jump_motor_vel_mode=1;
+	jump_motor_enable=1;
+	
+    //remain_time=sqrtf((2.0f*jump_stop_pos_r/k_x_r)/a);
+    //float k_filter=0.3f;
+    //float last_vel=0.0f;
+
+    //while(jump_motor1.posVelEstimateGet.position<+reset_offset+1.0f)//等待恒力弹簧收紧
+		//	vTaskDelay(2);
+	
+		//jump_motor_target_vel=jump_motor1.posVelEstimateGet.velocity;
+		//jump_motor_vel_mode=1;
+		
+	
+    /*do{
+        float motor_vel=k_filter*jump_motor1.posVelEstimateGet.velocity/k_x_r+(1-k_filter)*last_vel;                                //对采集到的电机速度进行低通滤波
+        float motor_pos=((jump_motor1.posVelEstimateGet.position-reset_offset))/k_x_r;
+        jump_motor_target_vel=sqrtf(2.0f*a*(jump_stop_pos_r/k_x_r-motor_pos)/k_x_r+motor_vel*motor_vel);
+        remain_time=(-motor_vel+sqrtf(motor_vel*motor_vel+2*a*motor_pos))/a;   //计算跳跃过程的剩余时间
+        a=(exp_vy*exp_vy-motor_vel*motor_vel)/(2*jump_stop_pos_r/k_x_r-motor_pos);
+				jump_motor_target_cur=a/k_a_i;
+        last_vel=motor_vel;
+        vTaskDelay(5);
+    }while(remain_time>launch_consume);	//还未到达启动发射进程的位置*/
+
+    while(jump_stop_pos_r-(jump_motor1.posVelEstimateGet.position-reset_offset)>launch_consume*exp_vy)
+    {
+        /*if(jump_motor1.posVelEstimateGet.velocity-exp_vy*k_x_r>5.0f)
+            jump_motor_target_cur=jump_start_cur;
+        else
+            jump_motor_target_cur=0.0f;*/
+        vTaskDelay(3);
+    }
+
+	xQueueSend(copilot_action_queue,&action,0);		//执行发射动作
+	
+		//jump_motor_target_vel=exp_vy*k_x_r;
+		//jump_motor_target_cur=0.0f;
+	while(jump_motor1.posVelEstimateGet.position-reset_offset<jump_stop_pos_r)//等待直到到达刹车点
+	{
+        /*if(jump_motor1.posVelEstimateGet.velocity-exp_vy*k_x_r>5.0f)
+            jump_motor_target_cur=jump_start_cur;
+        else
+            jump_motor_target_cur=0.0f;*/
+        /*float motor_vel=k_filter*jump_motor1.posVelEstimateGet.velocity/k_x_r+(1-k_filter)*last_vel;                                 //对采集到的电机速度进行低通滤波
+        float motor_pos=((jump_motor1.posVelEstimateGet.position-reset_offset))/k_x_r;
+        jump_motor_target_vel=sqrtf(2.0f*a*(jump_stop_pos_r/k_x_r-motor_pos)/k_x_r+motor_vel*motor_vel);*/
+        vTaskDelay(3);
+  }
+
+	jump_motor_target_cur=0.0f;
+	jump_motor_target_vel=0.0f;
+	jump_motor_enable=0;        //准备撞击桅杆顶端，失能电机
+
+	do{
+		vTaskDelay(5);
+	}while(jump_motor1.posVelEstimateGet.velocity>0.0f);		//在撞击时关闭电机，防止控制器出错
+	jump_motor_enable=1;
+	
+	jump_motor_target_cur=0.0f;
+	jump_motor_target_vel=-3.0f;
+	jump_motor_vel_mode=1;
+	while(jump_motor1.posVelEstimateGet.position>reset_offset+3.0f)	//限速下降到复位点
+		vTaskDelay(5);
+	jump_motor_target_vel=0.0f;
+
+	ActionFinished();
+}
+
+void LaunchInVel_coplit(void* param)	//以某个特定的速度发射(使用副队列)
+{
+	UNUSED(param);
+	push_motor_vel_mode=0;
+	push_motor_target_cur=GetLaunchTorqueEstimate(exp_vx);
+	//push_motor_target_vel=GetCurrentExpVelocity(exp_vx);
+	while(push_motor.actual_pos<launch_gate_pos)	//进行速度前馈控制直到到达末端
+	{
+		push_motor_target_vel=GetCurrentExpVelocity(push_motor.actual_pos,exp_vx);
+		vTaskDelay(2);
+	}
+	push_motor_target_cur=0.0f;
+	push_motor_vel_mode=1;
+	MotorTargetTrack_float(0.0f, &push_motor_target_vel,200.0f);	//执行刹车过程
+	vTaskDelay(1000);
+	push_motor_target_vel=-500.0f;		//复位推射机构
+	while(push_motor.actual_pos>0.0f)
+		vTaskDelay(5);
+	push_motor_target_vel=0.0f;
 }
 
 float base_launch_dis=2.42f;	//参考发射状态下，发射的距离(m)
 //float base_launch_height=1.3f;	//参考发射状态下，发射器的高度(m)
 //float base_launch_vel=4.69705f;//4.79587249622f;	//参考发射状态下，发射的速度(m/s)
+float base_launch_vel=4.69879f;
 float base_launch_torque=8000.0f;	//参考发射状态下，电机的Iq值（非标）
 float base_launch_time=0.289f;	//参考发射状态下，发射全过程所需要的时间(s)
 
 //自由落体时间0.525861f
+int debug_dt;
+float debug_jump_cur=5.0f;
+void DebugAction(void* param)
+{
+    debug_dt=HAL_GetTick();
+    jump_motor_target_cur=debug_jump_cur;
+		jump_motor_vel_mode=0;
+    while(jump_motor1.posVelEstimateGet.position<7.0f+reset_offset)//等待直到到达刹车点
+        vTaskDelay(5);
+		
+		jump_motor_target_cur=0;
+		jump_motor_enable=0;        //准备撞击桅杆顶端，失能电机
+	do{
+		vTaskDelay(5);
+	}while(jump_motor1.posVelEstimateGet.velocity>0.0f);		//在撞击时关闭电机，防止控制器出错
+	jump_motor_enable=1;
+		
+	jump_motor_target_cur=0.0f;
+	jump_motor_target_vel=-3.0f;
+	jump_motor_vel_mode=1;
+	while(jump_motor1.posVelEstimateGet.position>reset_offset+3.0f)	//限速下降到复位点
+		vTaskDelay(5);
+	jump_motor_target_vel=0.0f;
+	
+    jump_motor_target_cur=0.0f;
+    debug_dt=HAL_GetTick()-debug_dt;
+    jump_motor_enable=0;
+    ActionFinished();
+}
 
 const float interp_table[][2] = {
      {2, -282},
@@ -607,7 +663,6 @@ float linearInterpolation(int tab_size, float x, const float table[][2]) {
 
 float GetLaunchTimeEstimate(float vx)	//计算以某个速度发射篮球所需要的时间
 {
-	float base_launch_vel=base_launch_dis/sqrtf(2.0f*base_launch_height/9.802f);
 	float k=base_launch_time*base_launch_vel;
 	
 	if(vx<1.0f)		//防止除0
@@ -616,20 +671,23 @@ float GetLaunchTimeEstimate(float vx)	//计算以某个速度发射篮球所需�
 	return k/vx;
 }
 
+float debug_value3=0.0f;
+
 float GetLaunchTorqueEstimate(float vx)				//计算以某个速度发射时需要的力矩
 {
-	float base_launch_vel=base_launch_dis/sqrtf(2.0f*base_launch_height/9.802f);
 	float k=vx/base_launch_vel;
 	return base_launch_torque*k*k;
 }
 
 float GetCurrentExpVelocity(float fai,float exp_v)
 {
-	float base_launch_vel=base_launch_dis/sqrtf(2.0f*base_launch_height/9.802f);
 	float k=exp_v/base_launch_vel;
 	float base_current_motor_vel=linearInterpolation(sizeof(interp_table)/8,fai,interp_table);//TODO:打个表得到一个电机机械角度和转子速度的关系式
 	return k*base_current_motor_vel;	//以特定的比例缩放得到电机在标准发射状态下的转速
 }
+#endif 
+
+
 
 uint16_t SetSteeringEngineRAD180(float rad)
 {

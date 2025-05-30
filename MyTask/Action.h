@@ -52,6 +52,8 @@ float GetLaunchTimeEstimate(float vx);
 
 uint16_t SetSteeringEngineRAD180(float rad);
 uint16_t SetSteeringEngineRAD270(float rad);
+
+
 void MotorTargetTrack(int target, int *ctrl_var, int rate);
 void MotorTargetTrack_float(float target, float *ctrl_var, float rate);
 void LaunchInVel_coplit(void* param);
@@ -60,8 +62,9 @@ void JumpInVel(void* param);
 //动作
 void ResetAction(void* param);
 void TestAction(void* param);
-void FastJump(void *param);
+/*void FastJump(void *param);
 void LaunchInVel(void* param);
+void DebugAction(void* param);*/
 
 
 
