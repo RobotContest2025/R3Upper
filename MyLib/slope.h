@@ -25,6 +25,7 @@ typedef struct
 void MoterSlope(float target,float* now_target,MoterSlope_t* slopeSet);
 void Vector2dSlope(float *target,float* now_target,float max_rate);
 
+
 #endif
 
 //参数配置参考

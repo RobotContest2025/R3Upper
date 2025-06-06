@@ -140,17 +140,17 @@ uint32_t RobStrideRecv_Handle(RobStride_t *device, CAN_HandleTypeDef *hcan, uint
         if (device->type == RobStride_04)
         {
             device->state.feedback = ID >> 16;
-            device->state.rad = (float)(((DEPACK_U8_TO_U16_FLIP(buf[0], buf[1])) - 32767) * 4.0 * M_PI / 32767);
-            device->state.omega = (float)(((DEPACK_U8_TO_U16_FLIP(buf[2], buf[3])) - 32767) * 15 / 32767);
-            device->state.torque = (float)(((DEPACK_U8_TO_U16_FLIP(buf[4], buf[5])) - 32767) * 120 / 32767);
+            device->state.rad = (float)(((DEPACK_U8_TO_U16_FLIP(buf[0], buf[1])) - 32767) * 4.0f * M_PI / 32767);
+            device->state.omega = (float)(((DEPACK_U8_TO_U16_FLIP(buf[2], buf[3])) - 32767) * 15.0f / 32767);
+            device->state.torque = (float)(((DEPACK_U8_TO_U16_FLIP(buf[4], buf[5])) - 32767) * 120.0f / 32767);
             device->state.temperature = DEPACK_U8_TO_U16_FLIP(buf[6], buf[7]) * 0.1f;
         }
         else if (device->type == RobStride_01)
         {
             device->state.feedback = ID >> 16;
-            device->state.rad = (float)(((DEPACK_U8_TO_U16_FLIP(buf[0], buf[1])) - 32767) * 4.0 * M_PI / 32767);
-            device->state.omega = (float)(((DEPACK_U8_TO_U16_FLIP(buf[2], buf[3])) - 32767) * 44 / 32767);
-            device->state.torque = (float)(((DEPACK_U8_TO_U16_FLIP(buf[4], buf[5])) - 32767) * 17 / 32767);
+            device->state.rad = (float)(((DEPACK_U8_TO_U16_FLIP(buf[0], buf[1])) - 32767) * 4.0f * M_PI / 32767);
+            device->state.omega = (float)(((DEPACK_U8_TO_U16_FLIP(buf[2], buf[3])) - 32767) * 44.0f / 32767);
+            device->state.torque = (float)(((DEPACK_U8_TO_U16_FLIP(buf[4], buf[5])) - 32767) * 17.0f / 32767);
             device->state.temperature = DEPACK_U8_TO_U16_FLIP(buf[6], buf[7]) * 0.1f;
         }
     }
@@ -160,7 +160,8 @@ uint32_t RobStrideRecv_Handle(RobStride_t *device, CAN_HandleTypeDef *hcan, uint
     }
     else if (type == 17)    //请求读取单个参数时的处理
     {
-        switch (DEPACK_U8_TO_U16(buf[0], buf[1]))
+			uint16_t cmd=DEPACK_U8_TO_U16(buf[0], buf[1]);
+        switch (cmd)
         {
         case PARAM_RUN_MODE: // 当前控制模式
             device->param.run_mode = buf[4];
@@ -192,6 +193,12 @@ uint32_t RobStrideRecv_Handle(RobStride_t *device, CAN_HandleTypeDef *hcan, uint
         case PARAM_SPD_KI:
             device->param.spd_ki = *((float *)&buf[4]);
             break;
+				case PARAM_MECH_POS:
+						device->state.rad=*((float *)&buf[4]);
+						break;
+				case PARAM_MECH_VEL:
+					device->state.omega=*((float *)&buf[4]);
+					break;
         default:
             break;
         }

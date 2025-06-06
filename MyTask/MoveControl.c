@@ -1,6 +1,7 @@
 #include "MoveControl.h"
 #include "PID_old.h"
 #include "FastCal.h"
+#include "slope.h"
 
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;

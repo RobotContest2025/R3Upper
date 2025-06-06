@@ -19,7 +19,6 @@
 void ActionDealTask(void* param);
 void CoplitActionTask(void* queue);
 void MotorControl(void* param);
-void rad_limit(float* rad);
 
 
 #endif
