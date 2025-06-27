@@ -1,0 +1,140 @@
+[2024-12-23 19:12:59]	[info] incremental build: 43 source files changed
+These source files will be recompiled
+---
+'d:\Projects\CubeMX\debug_project\Core\Src\can.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Core\Src\dma.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Core\Src\freertos.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Core\Src\gpio.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Core\Src\main.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Core\Src\stm32f4xx_hal_msp.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Core\Src\stm32f4xx_hal_timebase_tim.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Core\Src\stm32f4xx_it.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Core\Src\system_stm32f4xx.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Core\Src\tim.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Core\Src\usart.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Core\Src\usb_otg.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_can.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_cortex.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dma.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dma_ex.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_exti.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_flash.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_flash_ex.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_flash_ramfunc.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_gpio.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pcd.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pcd_ex.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pwr.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pwr_ex.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_rcc.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_rcc_ex.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_tim.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_tim_ex.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_uart.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_usb.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\croutine.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\event_groups.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\list.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\portable\MemMang\heap_4.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM4F\port.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\queue.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\stream_buffer.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\tasks.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\timers.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\MDK-ARM\startup_stm32f407xx.s': object (.o) file not exist
+
+[2024-12-23 19:13:00]	compilation failed at : "d:\Projects\CubeMX\debug_project\Core\Src\main.c", exit code: 1
+command: 
+  "d:\Software\Keil_v5\ARM\ARMCC\bin\armcc.exe" -c --apcs=interwork -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -I../MyLib -I../MyTask -I.cmsis/include -IRTE/_rubbish -DUSE_HAL_DRIVER -DSTM32F407xx --cpu Cortex-M4.fp --li --c99 -O3 --split_sections --diag_suppress=1 --diag_suppress=1295 -g -o .\build\rubbish\.obj\__\Core\Src\main.o --no_depend_system_headers --depend .\build\rubbish\.obj\__\Core\Src\main.d .\..\Core\Src\main.c
+   at unify_builder.Program.compileByMulThread(Int32 thrNum, CmdInfo[] cmds_, List`1 errLogs)
+   at unify_builder.Program.Main(String[] args_)
+---
+"../MyLib/CANDrive.h", line 11: Error:  #37: the #endif for this directive is missing
+  #ifndef _CANDrive_H_
+   ^
+"../MyLib/CANDrive.h", line 11: Error:  #37: the #endif for this directive is missing
+  #ifndef _CANDrive_H_
+   ^
+"../MyLib/CANDrive.h", line 11: Error:  #37: the #endif for this directive is missing
+  #ifndef _CANDrive_H_
+   ^
+".\..\Core\Src\freertos.c", line 110: Error:  #29: expected an expression
+    xTaskCreate(MotorControl,"MotorCtrl",128,NULL,);
+                                                  ^
+".\..\Core\Src\freertos.c", line 110: Error:  #165: too few arguments in function call
+    xTaskCreate(MotorControl,"MotorCtrl",128,NULL,);
+                                                  ^
+.\..\Core\Src\freertos.c: 0 warnings, 5 errors
+"../MyLib/CANDrive.h", line 11: Error:  #37: the #endif for this directive is missing
+  #ifndef _CANDrive_H_
+   ^
+"../MyLib/CANDrive.h", line 11: Error:  #37: the #endif for this directive is missing
+  #ifndef _CANDrive_H_
+   ^
+"../MyLib/CANDrive.h", line 11: Error:  #37: the #endif for this directive is missing
+  #ifndef _CANDrive_H_
+   ^
+.\..\Core\Src\main.c: 0 warnings, 3 errors
+
+[2024-12-23 19:16:02]	[info] incremental build: 33 source files changed
+These source files will be recompiled
+---
+'d:\Projects\CubeMX\debug_project\Core\Src\freertos.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Core\Src\main.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_can.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_cortex.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dma.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dma_ex.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_exti.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_flash.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_flash_ex.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_flash_ramfunc.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_gpio.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pcd.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pcd_ex.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pwr.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pwr_ex.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_rcc.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_rcc_ex.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_tim.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_tim_ex.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_uart.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_usb.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\croutine.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\event_groups.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\list.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\portable\MemMang\heap_4.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM4F\port.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\queue.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\stream_buffer.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\tasks.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\Middlewares\Third_Party\FreeRTOS\Source\timers.c': object (.o) file not exist
+'d:\Projects\CubeMX\debug_project\MDK-ARM\startup_stm32f407xx.s': object (.o) file not exist
+
+[2024-12-23 19:16:04]	link failed !, exit code: 1
+   at unify_builder.Program.Main(String[] args_)
+---
+Error: L6200E: Symbol MoterSlopeStructure multiply defined (by main.o and freertos.o).
+Not enough information to list image symbols.
+Not enough information to list the image map.
+Finished: 2 information, 0 warning and 1 error messages.
+
+
+[2024-12-23 19:16:35]	[info] incremental build: 1 source files changed
+These source files will be recompiled
+---
+'d:\Projects\CubeMX\debug_project\Core\Src\main.c': source file has been changed.
+
+[2024-12-23 19:16:35]	link failed !, exit code: 1
+   at unify_builder.Program.Main(String[] args_)
+---
+Error: L6200E: Symbol MoterSlopeStructure multiply defined (by main.o and freertos.o).
+Not enough information to list image symbols.
+Not enough information to list the image map.
+Finished: 2 information, 0 warning and 1 error messages.
+
+

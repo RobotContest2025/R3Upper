@@ -1,0 +1,27 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "files.associations": {
+            "usart.h": "c",
+            "kalman.h": "c",
+            "stdio.h": "c",
+            "stm32f407xx.h": "c",
+            "motorcontrol.h": "c",
+            "xutility": "c",
+            "movecontrol.h": "c",
+            "charconv": "c",
+            "iosfwd": "c",
+            "ostream": "c",
+            "streambuf": "c",
+            "xstring": "c",
+            "queue.h": "c",
+            "stm32f4xx_hal.h": "c",
+            "vague_pid.h": "c"
+        }
+    },
+    "extensions": {}
+}

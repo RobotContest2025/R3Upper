@@ -3,15 +3,17 @@
 
 #include <stdio.h>
 #include <stdint.h>
-//#include "arm_math.h"
-#include "matrix.h"
+#include "arm_math.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "stm32f4xx_hal.h"
+#include "Vague_PID.h"
+#include "kalman.h"
 
-#define PI 3.14159265f
-#define RAD2ANGLE(x) (x*180/PI)
-#define ANGLE2RAD(x) (x*PI/180)
+
+//#define PI 3.14159265f
+#define RAD2ANGLE(x) ((x)*180/PI)
+#define ANGLE2RAD(x) ((x)*PI/180)
 
 typedef struct
 {
@@ -20,46 +22,56 @@ typedef struct
 } Point_t;
 
 #pragma pack(1) 
+
 typedef struct
 {
-	uint32_t head;
+    uint8_t head;
     float v_x;
     float v_y;
     float omega;
-} ChassisCtrl_t; //底盘控制结构体(全部使用国际单位制)
+    float acc;
+
+    uint32_t cmd;    //附加的命令/参数
+} ChassisCtrl_t;
+
+typedef struct{
+    float Attack_X_BallHoop,     
+          Attack_Y_BallHoop,     
+          Defend_X_BallHoop,     
+          Defend_Y_BallHoop;
+}Side_Data_Typedef;
+
+typedef struct {
+    float X, Y, Z;
+} velocity_Ex_Typedef;	
 
 
 typedef struct
 {
-    float x;        //绝对坐标系下机器人的位置
+    float x;            //绝对坐标系下机器人的位置
     float y;
     float angle;
 
-    float v_x;      //绝对坐标系下机器人的速度
+    float v_x;          //机器人的速度
     float v_y;
 
-	float iner_vx;  //机器人坐标系下的速度
-    float iner_vy;
-
-    float omega;  //自旋角速度
+    float omega;        //自旋角速度
+    float Distance;     //距离目标篮筐的距离 
 } RobotState_t; //机器人运动状态结构体(全部使用国际单位)
 
+typedef struct
+{
+  uint8_t head;
+  float v_x;
+  float v_y;
+  float omega;
 
-typedef struct {
-    int16_t X;
-    int16_t Y;
-    float Angle,
-          X_Velocity,//m/s
-          Y_Velocity,
-          Z_Velocity,	//度/s
-          Body_X_Velocity,	//m/s
-          Body_Y_Velocity;
-          uint8_t read_flag:2;
-} PositionPack_Typedef;
+  uint32_t state;
+} ChassisState_t;   //底盘状态反馈
 
 #pragma pack()
 
-
+float reform(float X);
 void MoveControlTask(void* param);
 
 #endif

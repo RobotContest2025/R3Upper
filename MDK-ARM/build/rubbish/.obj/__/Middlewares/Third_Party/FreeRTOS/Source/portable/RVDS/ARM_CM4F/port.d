@@ -1,0 +1,10 @@
+.\build\rubbish\.obj\__\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM4F\port.o: .\..\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM4F\port.c
+.\build\rubbish\.obj\__\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM4F\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+.\build\rubbish\.obj\__\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM4F\port.o: ../Core/Inc/FreeRTOSConfig.h
+.\build\rubbish\.obj\__\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM4F\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+.\build\rubbish\.obj\__\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM4F\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+.\build\rubbish\.obj\__\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM4F\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+.\build\rubbish\.obj\__\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM4F\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F/portmacro.h
+.\build\rubbish\.obj\__\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM4F\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+.\build\rubbish\.obj\__\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM4F\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
+.\build\rubbish\.obj\__\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM4F\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h
