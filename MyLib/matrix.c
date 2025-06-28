@@ -1,7 +1,5 @@
 #include "matrix.h"
 
-
-
 void* CreateMatrix(int rows,int colums)
 {
     Matrix_t* matrix=(Matrix_t*)malloc(sizeof(Matrix_t)+rows*colums*sizeof(float));

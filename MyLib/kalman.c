@@ -1,12 +1,11 @@
 #include "kalman.h"
 
-void kalman_Init(kalman_filter_t *p, float T_Q, float T_R) {
-    p->X_last = 0.0f;
-    p->P_last = 0.0f;
+void kalman_Init(kalman_filter_t *p, float T_Q, float T_R, float X) {
+    p->X_last = X;
+    p->P_last = T_R * 1000.f;
     p->Q = T_Q;
     p->R = T_R;
     p->A = 1.0f;
-    p->H = 1.0f;
     p->X_mid = p->X_last;
 }
 

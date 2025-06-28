@@ -13,95 +13,87 @@
 #include "motorControl.h"
 #include "kalman.h"
 #include "usart.h"
-
 #include <stdio.h>
 
-#define Remote_BT_0_WIFI_1 0
+typedef enum 
+{
+    ROBOT_IDEL,   //上电后的状态,10s后执行复位进入MOVE状态
+    ROBOT_MOVE,
+    ROBOT_DEFEND,
+    ROBOT_PICKUP,
 
-#if !Remote_BT_0_WIFI_1
+    ROBOT_READY_LAUNCH,
+    ROBOT_LAUNCH,
+    ROBOT_READY_JUMP,
+    ROBOT_JUMP,
+    ROBOT_READY_DRIBBLE,
+    ROBOT_DRIBBLE
+}RobotMode;
+
+typedef struct{
+    RobotMode Mode;
+    uint8_t Action_Finish;
+    uint8_t Robot_Init;
+} RobotMode_Typedef;
+
 
 #pragma pack(1)
 
-typedef struct
-{
-  uint16_t Left_Key_Up : 1;
-  uint16_t Left_Key_Down : 1;
-  uint16_t Left_Key_Left : 1;
-  uint16_t Left_Key_Right : 1;
-  uint16_t Left_Rocker : 1;
-  uint16_t Left_Encoder : 1;
-  uint16_t Left_Switch_Up : 1;
-  uint16_t Left_Switch_Down : 1;
-  uint16_t Right_Key_Up : 1;
-  uint16_t Right_Key_Down : 1;
-  uint16_t Right_Key_Left : 1;
-  uint16_t Right_Key_Right : 1;
-  uint16_t Right_Rocker : 1;
-  uint16_t Right_Encoder : 1;
-  uint16_t Right_Switch_Up : 1;
-  uint16_t Right_Switch_Down : 1;
+typedef struct{
+   uint8_t Left_Key_Up : 1;         
+   uint8_t Left_Key_Down : 1;       
+   uint8_t Left_Key_Left : 1;       
+   uint8_t Left_Key_Right : 1;       
+   uint8_t Left_Switch_Up_or_Left : 1;       
+   uint8_t Left_Switch_Down_or_Right: 1;       
+   uint8_t UNUSED1 : 1;
+   uint8_t UNUSED2 : 1;
+
+   uint8_t Right_Key_Up : 1;        
+   uint8_t Right_Key_Down : 1;      
+   uint8_t Right_Key_Left : 1;      
+   uint8_t Right_Key_Right : 1;     
+   uint8_t Right_Switch_Up_or_Right : 1;      
+   uint8_t Right_Switch_Down_or_Left : 1;      
+   uint8_t UNUSED3 : 1; 
+   uint8_t UNUSED4 : 1;
 } hw_key_t;
 
-typedef struct
-{
-  uint8_t head;
-  int16_t rocker[4];
-  hw_key_t Key;
-  uint8_t end;
+
+typedef struct{
+	uint8_t head;
+	int16_t rocker[4];
+	hw_key_t Key;
+	uint8_t end;
 } UART_DataPack;
-#pragma pack()
-#else
-#pragma pack(1)
-typedef struct
-{
-  uint8_t Left_Key_Up;
-  uint8_t Left_Key_Down;
-  uint8_t Left_Key_Left;
-  uint8_t Left_Key_Right;
-  uint8_t Left_Switch_L;
-  uint8_t Left_Switch_R;
-  uint8_t UNUSED1;
-  uint8_t UNUSED2;
 
-  uint8_t Right_Key_Up;
-  uint8_t Right_Key_Down;
-  uint8_t Right_Key_Left;
-  uint8_t Right_Key_Right;
-  uint8_t Right_Switch_R;
-  uint8_t Right_Switch_L;
-  uint8_t UNUSED3;
-  uint8_t UNUSED4;
-} hw_key_t;
 
 typedef struct
 {
-  uint8_t head;
-  uint16_t rocker[4];
-  hw_key_t Key;
-  uint8_t end;
-} UART_DataPack;
+	uint8_t head;
+	uint8_t type;
+	int16_t x;
+	int16_t y;
+	int16_t z;
+	int16_t t;
+	uint8_t check;
+}JY61P_AccSensor_t;
+
+
+typedef struct {
+    int8_t head;    //0X2B
+    int16_t angle;  //度*180    
+    int16_t x;     	//mm
+    int16_t y;	    //mm
+}PositionPack_Typedef;		//雷达定位数据包
+
+typedef struct {
+    float angle,    //度
+          x,     	//mm
+          y;	    //mm
+}Position_Typedef;		//雷达定位数据包
 #pragma pack()
-#endif
 
-/*typedef struct
-{
-  uint8_t head;
-  int16_t ax;
-  int16_t ay;
-  int16_t az;
-  int16_t temp;
-  uint8_t check;
-} JY61P_t;*/
-
-#pragma pack()
-
-typedef enum
-{
-  ROBOT_RELATIVE, // 鑷敱杩愬姩
-  ROBOT_ABSOLUTE,
-  ROBOT_STOP,        // 鎬ュ仠
-  ROBOT_READY_LUNCH, // 浠ョ绛愪负鍦嗗績锛岄潰鏈濈绛愶紝閿佸畾绡瓙杩愬姩
-} Move_Mode_t;
 
 void RemoteTask(void *param);
 

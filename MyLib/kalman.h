@@ -42,7 +42,6 @@ typedef struct {
     float A;      //系统参数
     float Q;
     float R;
-    float H;
 } kalman_filter_t;
 
 /**
@@ -51,7 +50,7 @@ typedef struct {
   * @param[in] T_Q 系统噪声协方差
   * @param[in] T_R 测量噪声协方差
   */
-void kalman_Init(kalman_filter_t *p, float T_Q, float T_R);
+void kalman_Init(kalman_filter_t *p, float T_Q, float T_R, float X);
 
 /**
   * @brief 卡尔曼滤波器

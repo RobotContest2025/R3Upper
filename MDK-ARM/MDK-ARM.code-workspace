@@ -1,0 +1,16 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "files.associations": {
+            "odrive.h": "c",
+            "robstride2.h": "c",
+            "action.h": "c",
+            "stm32f4xx_hal.h": "c",
+            "motorex.h": "c"
+        }
+    }
+}

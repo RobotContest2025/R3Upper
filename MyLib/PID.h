@@ -135,51 +135,6 @@ void PID_Init(
 float PID_Calculate(float measure, float target,PID_TypeDef *pid);
 float PID_Control_Smis(float measure, float target,PID_TypeDef *pid, float speed);
 float PID_Control_Increment(float measure, float target,PID_TypeDef *pid);		
-
-	
-
-/******************************** FUZZY PID **********************************/
-#define NB -3
-#define NM -2
-#define NS -1
-#define ZE 0
-#define PS 1
-#define PM 2
-#define PB 3
-
-	
-typedef struct  // 模糊PID结构体
-{
-    float KpFuzzy;
-    float KiFuzzy;
-    float KdFuzzy;
-
-	float KpMax;
-    float KiMax;
-    float KdMax;
-
-    float KpRatio;
-    float KiRatio;
-    float KdRatio;
-	float integral;
-	float IntegralLimit;
-	
-    float eStep;
-    float ecStep;
-
-    float e;
-    float ec;
-    float eLast;
-		
-	float dt;
-
-    float max_output;
-
-}FuzzyRule_t;
-
-void Fuzzy_Rule_Init(float kpMax, float kiMax, float kdMax, float integralLimit, float eStep,float ecStep, float dt,float max_output,FuzzyRule_t *fuzzyRule);
-float Fuzzy_Rule_Implementation(float measure, float target, FuzzyRule_t *fuzzyRule);
-
 		
 	
 #endif
