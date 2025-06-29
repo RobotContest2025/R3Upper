@@ -85,7 +85,7 @@ void MotorControl(void *param)
 	//RobStride电机初始化结束
 
 	//等待Odrive上电成功
-	while(jump_motor1.heartBeatGet.axisState!=0x08)
+//	while(jump_motor1.heartBeatGet.axisState!=0x08)
 		vTaskDelay(pdMS_TO_TICKS(50));
 	
 	//ODrive电机初始化开始

@@ -36,17 +36,14 @@ extern ChassisCtrl_t chassis;
 extern JY61P_AccSensor_t jy61p;
 extern RobotState_t robot;
 extern PID2 jump_motor_pid;
+extern uint8_t Attack_Defend_side;
 
-int lv53_ball_dis = 0;
+
+
+
+
 float lv53_cur_dis = 0.0f;
-float lv53_gate_dis = 270.0f;
-float debug_value = 0.0f;
 float reset_height = 0.935f;
-int32_t launch_velocity = -60.0f;
-int32_t start_launch_time = 1100;
-
-extern float actual_gn;
-
 float lower_height = 0.20f;
 float reset_vel = -3.0f;
 float throw_motor_reset_rad = 0.3f;
@@ -85,6 +82,54 @@ void ResetAction(void *param) // 上电时执行一次的动作，将机械结�
 	ActionFinished();
 }
 
+
+
+
+void Move_Mode(void *param) {
+	chassis.cmd = CMD_MODE_LOCK_CHASSIS; // 发送指令让底盘锁定
+    jump_motor_enable = 1;
+    jump_motor_vel_mode = 1;
+	jump_motor_target_vel = 0.0f;
+
+	throw_motor_target_rad = throw_motor.state.rad;
+    throw_motor_target_torque = 0;
+	throw_motor_vel_mode = 2;
+
+    if(lv53_cur_dis > 0.66){
+        if(Attack_Defend_side == 1)//若为攻方
+            MotorTargetTrack_float(ANGLE2RAD(17), &throw_motor_target_rad, 0.001f);            
+        else if(Attack_Defend_side == 0){//若为守方
+            if (throw_motor.state.rad > ANGLE2RAD(17) && throw_motor.state.rad < 0)
+                MotorTargetTrack_float(ANGLE2RAD(17), &throw_motor_target_rad, 0.001f);  
+            else if(throw_motor.state.rad < ANGLE2RAD(-17) && throw_motor.state.rad > 0)
+                MotorTargetTrack_float(ANGLE2RAD(-17), &throw_motor_target_rad, 0.001f);
+        }
+    }
+
+	if (lv53_cur_dis > lower_height)
+	{
+		jump_motor_target_vel = -2.0f;
+        if(throw_motor.state.rad > 0){
+            while (lv53_cur_dis > lower_height){
+                throw_motor_target_rad = TargetSlope(ANGLE2RAD(17), throw_motor_target_rad, 0.003);
+                vTaskDelay(3);
+            }
+        }
+        else if(throw_motor.state.rad < 0){
+            while (lv53_cur_dis > lower_height){
+                throw_motor_target_rad = TargetSlope(ANGLE2RAD(-17), throw_motor_target_rad, 0.003);
+                vTaskDelay(3);
+            }
+        }
+	}
+	jump_motor_target_vel = 0.0f;
+    if(throw_motor.state.rad > 0)
+        MotorTargetTrack_float(ANGLE2RAD(17), &throw_motor_target_rad, 0.001f);
+    else if(throw_motor.state.rad < 0)
+        MotorTargetTrack_float(ANGLE2RAD(-17), &throw_motor_target_rad, 0.001f);
+
+	ActionFinished();
+}
 void DownChassis(void *param)
 {
 	UNUSED(param);
@@ -96,7 +141,7 @@ void DownChassis(void *param)
 float lower_vel = -2.0f;
 float locked_gate_cur = -0.45f;
 float height_offset = 0.0f;
-float throw_start_rad = 2.2f;
+float throw_start_rad = ANGLE2RAD(126);
 float throw_break_torque = 50.0f;
 float throw_detach_rad = 2.8f;
 float throw_break_rad = 3.0f;
@@ -116,15 +161,37 @@ void ReadyBackThrowAction(void *param)
 	throw_motor_target_rad = throw_motor.state.rad;
     throw_motor_target_torque = 0;
 	throw_motor_vel_mode = 2;
-	MotorTargetTrack_float(throw_start_rad, &throw_motor_target_rad, 0.002f);
 
+    if (throw_motor.state.rad < ANGLE2RAD(17)){
+        jump_motor_enable = 1;
+        jump_motor_vel_mode = 1;
+        jump_motor_target_vel = 1.5f;
+        do{
+            vTaskDelay(3);//必须先延时
+            if(lv53_cur_dis > 0.66)
+                jump_motor_target_vel = 0.f;
+            if(throw_motor.state.rad < ANGLE2RAD(-17))
+                throw_motor_target_rad = TargetSlope(ANGLE2RAD(-17), throw_motor_target_rad, 0.003);
+        }while (lv53_cur_dis < 0.66 || throw_motor.state.rad < ANGLE2RAD(-17));
+        MotorTargetTrack_float(ANGLE2RAD(17), &throw_motor_target_rad, 0.001f);
+    }
+
+    if(throw_motor.state.rad > ANGLE2RAD(126)){//如果太靠下
+        throw_motor_target_rad = throw_motor.state.rad;
+        throw_motor_vel_mode = 2;
+        MotorTargetTrack_float(ANGLE2RAD(126), &throw_motor_target_rad, 0.001f);
+    }
 	jump_motor_vel_mode = 1;
 	jump_motor_target_vel = lower_vel;
 	chassis.cmd = CMD_MODE_LOCK_CHASSIS; // 发送指令让底盘锁定
-	while (lv53_cur_dis > lower_height)
-		vTaskDelay(3);
-	jump_motor_vel_mode = 0;
+
+    while (lv53_cur_dis > lower_height){
+        vTaskDelay(3);
+        throw_motor_target_rad = TargetSlope(throw_start_rad, throw_motor_target_rad, 0.003);
+    }
+	jump_motor_target_vel = 0.0f;
 	jump_motor_target_cur = -0.1f;
+	jump_motor_vel_mode = 0;
 	vTaskDelay(1000);
 	jump_motor_vel_mode = 1;
 	jump_motor_target_cur = 0.0f;
@@ -257,7 +324,7 @@ void ReadyDribbleAction2(void *param)
 	chassis.cmd = CMD_MODE_UNLOCK_CHASSIS;
 	vTaskDelay(300);
 
-	if (throw_motor.state.rad < ANGLE2RAD(13)){
+	if (throw_motor.state.rad < ANGLE2RAD(17)){
         jump_motor_enable = 1;
         jump_motor_vel_mode = 1;
         jump_motor_target_vel = 1.5f;
@@ -265,15 +332,15 @@ void ReadyDribbleAction2(void *param)
             vTaskDelay(3);//必须先延时
             if(lv53_cur_dis > 0.66)
                 jump_motor_target_vel = 0.f;
-            if(throw_motor.state.rad < ANGLE2RAD(-13))
-                throw_motor_target_rad = TargetSlope(ANGLE2RAD(-13), throw_motor_target_rad, 0.003);
-        }while (lv53_cur_dis < 0.66 || throw_motor.state.rad < ANGLE2RAD(-13));
-        MotorTargetTrack_float(ANGLE2RAD(13), &throw_motor_target_rad, 0.001f);
+            if(throw_motor.state.rad < ANGLE2RAD(-17))
+                throw_motor_target_rad = TargetSlope(ANGLE2RAD(-17), throw_motor_target_rad, 0.003);
+        }while (lv53_cur_dis < 0.66 || throw_motor.state.rad < ANGLE2RAD(-17));
+        MotorTargetTrack_float(ANGLE2RAD(17), &throw_motor_target_rad, 0.001f);
     }
-    if(throw_motor.state.rad > ANGLE2RAD(110)){//如果太靠下
+    if(throw_motor.state.rad > ANGLE2RAD(126)){//如果太靠下
         throw_motor_target_rad = throw_motor.state.rad;
         throw_motor_vel_mode = 2;
-        MotorTargetTrack_float(ANGLE2RAD(110), &throw_motor_target_rad, 0.001f);
+        MotorTargetTrack_float(ANGLE2RAD(126), &throw_motor_target_rad, 0.001f);
     }
 
 	if (lv53_cur_dis > dribble2_height - 0.03) // 调整运球起始大臂高度
@@ -345,7 +412,7 @@ void ReadyJumpAction(void *param)
 	throw_motor_target_rad = throw_motor.state.rad;
 	throw_motor_target_torque = 0.0f;
 
-	if (throw_motor.state.rad < ANGLE2RAD(13)){
+	if (throw_motor.state.rad < ANGLE2RAD(17)){
         jump_motor_enable = 1;
         jump_motor_vel_mode = 1;
         jump_motor_target_vel = 1.5f;
@@ -353,15 +420,15 @@ void ReadyJumpAction(void *param)
             vTaskDelay(3);//必须先延时
             if(lv53_cur_dis > 0.66)
                 jump_motor_target_vel = 0.f;
-            if(throw_motor.state.rad < ANGLE2RAD(-13))
-                throw_motor_target_rad = TargetSlope(ANGLE2RAD(-13), throw_motor_target_rad, 0.003);
-        }while (lv53_cur_dis < 0.66 || throw_motor.state.rad < ANGLE2RAD(-13));
-        MotorTargetTrack_float(ANGLE2RAD(13), &throw_motor_target_rad, 0.001f);
+            if(throw_motor.state.rad < ANGLE2RAD(-17))
+                throw_motor_target_rad = TargetSlope(ANGLE2RAD(-17), throw_motor_target_rad, 0.003);
+        }while (lv53_cur_dis < 0.66 || throw_motor.state.rad < ANGLE2RAD(-17));
+        MotorTargetTrack_float(ANGLE2RAD(17), &throw_motor_target_rad, 0.001f);
     }
-    if(throw_motor.state.rad > ANGLE2RAD(110)){//如果太靠下
+    if(throw_motor.state.rad > ANGLE2RAD(126)){//如果太靠下
         throw_motor_target_rad = throw_motor.state.rad;
         throw_motor_vel_mode = 2;
-        MotorTargetTrack_float(ANGLE2RAD(110), &throw_motor_target_rad, 0.001f);
+        MotorTargetTrack_float(ANGLE2RAD(126), &throw_motor_target_rad, 0.001f);
     }
 	if (lv53_cur_dis > lower_height) // 调整跳跃起始大臂高度
 	{
@@ -470,11 +537,11 @@ void PickUpBallAction(void *param)
 {
 	UNUSED(param);
 	throw_motor_target_rad = throw_motor.state.rad;
-	throw_motor_vel_mode = 2;
     throw_motor_target_torque = 0;
+	throw_motor_vel_mode = 2;
     claw_motor_target_pos = claw_detach_pos;
 
-	if (throw_motor.state.rad < ANGLE2RAD(13)){
+	if (throw_motor.state.rad < ANGLE2RAD(17)){
         jump_motor_enable = 1;
         jump_motor_vel_mode = 1;
         jump_motor_target_vel = 1.5f;
@@ -482,16 +549,16 @@ void PickUpBallAction(void *param)
             vTaskDelay(3);//必须先延时
             if(lv53_cur_dis > 0.66)
                 jump_motor_target_vel = 0.f;
-            if(throw_motor.state.rad < ANGLE2RAD(-13))
-                throw_motor_target_rad = TargetSlope(ANGLE2RAD(-13), throw_motor_target_rad, 0.003);
-        }while (lv53_cur_dis < 0.66 || throw_motor.state.rad < ANGLE2RAD(-13));
-        MotorTargetTrack_float(ANGLE2RAD(13), &throw_motor_target_rad, 0.001f);
+            if(throw_motor.state.rad < ANGLE2RAD(-17))
+                throw_motor_target_rad = TargetSlope(ANGLE2RAD(-17), throw_motor_target_rad, 0.003);
+        }while (lv53_cur_dis < 0.66 || throw_motor.state.rad < ANGLE2RAD(-17));
+        MotorTargetTrack_float(ANGLE2RAD(17), &throw_motor_target_rad, 0.001f);
     }
 
-    if(throw_motor.state.rad > ANGLE2RAD(110)){//如果太靠下
+    if(throw_motor.state.rad > ANGLE2RAD(126)){//如果太靠下
         throw_motor_target_rad = throw_motor.state.rad;
         throw_motor_vel_mode = 2;
-        MotorTargetTrack_float(ANGLE2RAD(110), &throw_motor_target_rad, 0.001f);
+        MotorTargetTrack_float(ANGLE2RAD(126), &throw_motor_target_rad, 0.001f);
     }
 
 	if (lv53_cur_dis > lower_height) // 调整捡球起始大臂高度
@@ -529,7 +596,7 @@ float cur_exp_vel;
 float height_err;
 
 float defend_vel_limit=20.0f;
-float defend_rad = 0.3f;
+float defend_rad = 0;
 float defend_exp_height = 0.0f;
 float exp_pos_k = 0.4f;			 // 归一化后的摇杆数据到高度的比例关系
 float exp_pos_b = 0.6f;			 // 上底盘默认高度
@@ -544,27 +611,40 @@ void DefendAction(void *param)
 	throw_motor_target_rad = throw_motor.state.rad;
     throw_motor_target_torque = 0;
 	throw_motor_vel_mode = 2;
-	jump_motor_enable = 1;
-	jump_motor_vel_mode = 1;
+    jump_motor_target_vel = 0;
+    jump_motor_vel_mode = 1;
+    jump_motor_enable = 1;
+    
+    if(lv53_cur_dis < 0.66){
+        if (throw_motor.state.rad < ANGLE2RAD(17))
+            MotorTargetTrack_float(ANGLE2RAD(17), &throw_motor_target_rad, 0.001f);  
+        else if(throw_motor.state.rad > ANGLE2RAD(-17))
+            MotorTargetTrack_float(ANGLE2RAD(-17), &throw_motor_target_rad, 0.001f);
+    }
+
 	if (lv53_cur_dis > exp_pos_b)
 	{
 		jump_motor_target_vel = -2.0f;
-		while (lv53_cur_dis > exp_pos_b)
+		while (lv53_cur_dis > exp_pos_b){
+            throw_motor_target_rad = TargetSlope(ANGLE2RAD(17), throw_motor_target_rad, 0.003);
 			vTaskDelay(3);
+        }
 	}
 	else if (lv53_cur_dis < exp_pos_b)
 	{
 		jump_motor_target_vel = 2.0f;
-		while (lv53_cur_dis < exp_pos_b)
+		while (lv53_cur_dis < exp_pos_b){
+            throw_motor_target_rad = TargetSlope(ANGLE2RAD(-17), throw_motor_target_rad, 0.003);
 			vTaskDelay(3);
+        }
 	}
 	jump_motor_target_vel = 0.0f;
-
-	MotorTargetTrack_float(defend_rad, &throw_motor_target_rad, 0.001f);
 
 	float last_exp_vel = 0.0f;
 	while (exit_defend == 0) // 正常情况下动作会阻塞在这里直到下一个动作打断当前动作（当前动作应被配置为可打断的）
 	{
+        throw_motor_target_rad = TargetSlope(0, throw_motor_target_rad, 0.01);
+
 		defend_exp_height = exp_pos_k * remote_rocker4 + exp_pos_b; // 根据遥控器摇杆4的位置计算期望高度
 
 		height_err = defend_exp_height - lv53_cur_dis;

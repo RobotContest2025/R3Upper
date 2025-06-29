@@ -13,6 +13,7 @@ extern QueueHandle_t remote_semaphore;
 extern uint8_t Circular_To_Absolute_motion; // 运动控制
 extern uint8_t PTZ_followl;                 // 是否锁定篮筐
 extern uint8_t enable_offset;               // 是否启用偏移自动校正
+extern uint8_t Attack_Defend_side;
 
 UART_DataPack remoteRecv, last_remoteRecv;
 JY61P_AccSensor_t jy61p, last_pack;
@@ -198,15 +199,22 @@ void RemoteTask(void *param)
                 else
                     claw_motor_target_pos = 0;
             }
-            else if (remoteRecv.Key.Right_Key_Right == 1 && last_remoteRecv.Key.Right_Key_Right == 0) //
+            else if (remoteRecv.Key.Right_Key_Right == 1 && last_remoteRecv.Key.Right_Key_Right == 0) //攻方转换按键
             {
-
+                if(Attack_Defend_side == 0)
+                    Attack_Defend_side = 1;
+                else if(Attack_Defend_side == 1)
+                    Attack_Defend_side = 0;
             }
         }
         // 机器人状态更新
         if (RobotState.Action_Finish == 1 && (RobotState.Mode == ROBOT_DRIBBLE || RobotState.Mode == ROBOT_JUMP || RobotState.Mode == ROBOT_LAUNCH)) // 完成双步动作后，将机器人切换为移动模式
         {
             RobotState.Action_Finish = 0;
+            action.type = ACTION_TYPE_INTERRUPTABLE;
+            action.action_cb = Move_Mode;
+            action.param = &RobotState.Action_Finish;
+            xQueueSend(action_queue, &action, pdMS_TO_TICKS(10));
             RobotState.Mode = ROBOT_MOVE;
         }
         last_remoteRecv = remoteRecv; // 更新遥控器状态

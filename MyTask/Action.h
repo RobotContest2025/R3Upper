@@ -78,6 +78,8 @@ void DefendAction(void* param);
 	
 void PickUpBallAction(void* param);
 
+void Move_Mode(void *param);
+
 
 
 //辅助函数
@@ -87,7 +89,7 @@ uint16_t SetSteeringEngineRAD270(float rad);
 void MotorTargetTrack(int target, int *ctrl_var, int rate);
 void MotorTargetTrack_float(float target, float *ctrl_var, float rate);
 LaunchDots_t CalculateLaunchParam(float distance);
-float TargetSlope(float target,float current,float max_increase,float min_reduction);
+float TargetSlope(float target, float current, float max_increase);
 
 
 #endif
